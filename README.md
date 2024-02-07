@@ -51,3 +51,42 @@ result = reader.readtext(snap_array)
 for detection in result:
     print(detection[1])  # Text extracted
 
+
+
+
+
+
+
+import easyocr
+import subprocess
+
+def perform_ocr(image_path):
+    reader = easyocr.Reader(['en'])  # Specify the language(s) you want to recognize
+
+    # Perform OCR on the image
+    result = reader.readtext(image_path)
+
+    # Return the OCR results
+    return result
+
+def print_results_to_notepad(results):
+    # Create a new Notepad process
+    notepad_process = subprocess.Popen(["notepad.exe"], stdin=subprocess.PIPE, text=True)
+
+    # Write the OCR results to Notepad
+    for line in results:
+        notepad_process.stdin.write(line[1] + "\n")  # Assuming the text is in the second element of the tuple
+
+    # Close Notepad after writing
+    notepad_process.stdin.close()
+
+if __name__ == "__main__":
+    # Replace 'path/to/your/image.jpg' with the actual path to your image file
+    image_path = 'path/to/your/image.jpg'
+
+    # Perform OCR on the image
+    ocr_results = perform_ocr(image_path)
+
+    # Print the results to Notepad
+    print_results_to_notepad(ocr_results)
+
