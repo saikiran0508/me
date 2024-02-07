@@ -1,25 +1,21 @@
-result.sort(key=lambda x: x[0][0][1])
+import easyocr
 
-# Process the result to maintain spacing and lines
-lines = []
-current_line = []
+def print_with_spacing_and_lines(image_path):
+    reader = easyocr.Reader(['en'])  # Initialize EasyOCR with English language
 
-for detection in result:
-    # Extract text and bounding box coordinates
-    text, bbox = detection[1], detection[0]
-    
-    # Check if the current detection is in the same line as the previous
-    if not current_line or abs(bbox[0][1] - current_line[-1][0][1]) < 20:  # Adjust the threshold as needed
-        current_line.append((bbox, text))
-    else:
-        lines.append(current_line)
-        current_line = [(bbox, text)]
+    # Perform OCR
+    result = reader.readtext(image_path)
 
-# Append the last line
-if current_line:
-    lines.append(current_line)
+    # Reconstruct lines and spacing
+    reconstructed_text = ""
+    for detection in result:
+        text, _, _ = detection
+        reconstructed_text += text + " "  # Add space between words
 
-# Format the extracted lines
-formatted_text = '\n'.join([' '.join([word[1] for word in line]) for line in lines])
+    # Print formatted text
+    print(reconstructed_text)
 
-print(formatted_text)
+# Example usage
+image_path = 'example_image.jpg'
+print_with_spacing_and_lines(image_path)
+
