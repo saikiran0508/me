@@ -1,4 +1,4 @@
-result.sort(key=lambda x: x[0][1])
+result.sort(key=lambda x: x[0][0][1])
 
 # Process the result to maintain spacing and lines
 lines = []
@@ -9,7 +9,7 @@ for detection in result:
     text, bbox = detection[1], detection[0]
     
     # Check if the current detection is in the same line as the previous
-    if not current_line or any(abs(bbox[1][1] - prev_bbox[1][1]) < 20 for prev_bbox in current_line):  # Adjust the threshold as needed
+    if not current_line or abs(bbox[0][1] - current_line[-1][0][1]) < 20:  # Adjust the threshold as needed
         current_line.append((bbox, text))
     else:
         lines.append(current_line)
