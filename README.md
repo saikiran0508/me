@@ -89,4 +89,13 @@ if __name__ == "__main__":
 
     # Print the results to Notepad
     print_results_to_notepad(ocr_results)
+import pandas as pd
 
+# Example DataFrame
+data = {'date_column': [45323, 45324, 45325, 45326, 45327]}
+df = pd.DataFrame(data)
+
+# Convert five-digit number to date format
+df['date_column'] = pd.to_datetime(df['date_column'], unit='D', origin='1970-01-01')
+
+print(df)
