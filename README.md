@@ -109,3 +109,14 @@ WHERE (id, timestamp) IN (
     FROM your_table
     GROUP BY id
 );
+
+
+
+
+SELECT t1.*
+FROM your_table t1
+INNER JOIN (
+    SELECT id, MAX(timestamp) AS max_timestamp
+    FROM your_table
+    GROUP BY id
+) t2 ON t1.id = t2.id AND t1.timestamp = t2.max_timestamp;
