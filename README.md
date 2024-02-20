@@ -1,4 +1,4 @@
-import pandas as pd
+ŭimport pandas as pd
 import pyodbc
 from datetime import datetime, timedelta
 
@@ -99,3 +99,13 @@ df = pd.DataFrame(data)
 df['date_column'] = pd.to_datetime(df['date_column'], unit='D', origin='1970-01-01')
 
 print(df)
+
+
+
+SELECT *
+FROM your_table
+WHERE (id, timestamp) IN (
+    SELECT id, MAX(timestamp)
+    FROM your_table
+    GROUP BY id
+);
