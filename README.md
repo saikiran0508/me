@@ -1,4 +1,4 @@
-ŭimport pandas as pd
+7ŭimport pandas as pd
 import pyodbc
 from datetime import datetime, timedelta
 
@@ -120,3 +120,9 @@ INNER JOIN (
     FROM your_table
     GROUP BY id
 ) t2 ON t1.id = t2.id AND t1.timestamp = t2.max_timestamp;
+SELECT *
+FROM (
+    SELECT *, ROW_NUMBER() OVER (PARTITION BY id ORDER BY timestamp DESC) AS rn
+    FROM your_table
+) AS sub
+WHERE rn = 1;
