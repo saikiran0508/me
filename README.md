@@ -109,7 +109,7 @@ WHERE (id, timestamp) IN (
     FROM your_table
     GROUP BY id
 );
-
+=IF(RIGHT(A1,1)="2", A1 & " as " & A1, A1 & " as " & A1 & "2")
 
 
 
