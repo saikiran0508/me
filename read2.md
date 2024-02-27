@@ -1,18 +1,25 @@
-data new_dataset;
-    set old_dataset;
+import requests
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 
-    /* Calculate the difference between the two timestamps in hours */
-    time_difference_hours = intck('HOUR', timestamp1, timestamp2, 'C');
+def fetch_embedded_data(embedded_link):
+    session = requests.Session()
+    retries = Retry(total=5, backoff_factor=1, status_forcelist=[500, 502, 503, 504])
+    session.mount('https://', HTTPAdapter(max_retries=retries))
+    try:
+        response = session.get(embedded_link)
+        response.raise_for_status()
+        return response.text
+    except requests.exceptions.RequestException as e:
+        print("Error:", e)
+        return None
 
-    /* Convert hours to combined format of days and hours */
-    days_part = floor(time_difference_hours / 24);
-    hours_part = mod(time_difference_hours, 24);
-    
-    /* Combine days and hours into a single column */
-    time_difference = put(days_part, 4.) || ' days ' || put(hours_part, 2.) || ' hours';
+# Example embedded data link
+embedded_link = 'YOUR_EMBEDDED_DATA_LINK_HERE'
 
-    /* Optionally, you can convert days to years if needed */
-    /* years_part = floor(days_part / 365.25); */
-    /* days_part = mod(days_part, 365.25); */
-    
-run;
+# Fetch embedded data with retry mechanism
+embedded_data = fetch_embedded_data(embedded_link)
+if embedded_data:
+    print("Embedded Data:", embedded_data)
+else:
+    print("Failed to fetch embedded data after retries.")
