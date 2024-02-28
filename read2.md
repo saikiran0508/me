@@ -1,25 +1,23 @@
-import requests
-from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
+import pandas as pd
+import numpy as np
 
-def fetch_embedded_data(embedded_link):
-    session = requests.Session()
-    retries = Retry(total=5, backoff_factor=1, status_forcelist=[500, 502, 503, 504])
-    session.mount('https://', HTTPAdapter(max_retries=retries))
-    try:
-        response = session.get(embedded_link)
-        response.raise_for_status()
-        return response.text
-    except requests.exceptions.RequestException as e:
-        print("Error:", e)
-        return None
+# Assuming you already have a DataFrame df with 'country' and 'class' columns
 
-# Example embedded data link
-embedded_link = 'YOUR_EMBEDDED_DATA_LINK_HERE'
+# Define conditions for the new column
+conditions = [
+    (df['country'] == 'UK') & (df['class'] == 'Personal'),
+    # Add more conditions as needed
+]
 
-# Fetch embedded data with retry mechanism
-embedded_data = fetch_embedded_data(embedded_link)
-if embedded_data:
-    print("Embedded Data:", embedded_data)
-else:
-    print("Failed to fetch embedded data after retries.")
+# Define values for the new column corresponding to each condition
+values = ['fpb']
+
+# Add more values as needed, matching the conditions
+
+# Create the new column based on the conditions
+df['new_column'] = np.select(conditions, values, default='default_value')
+
+# Replace 'default_value' with the default value you want if none of the conditions are met
+
+# Display the updated DataFrame
+print(df)
