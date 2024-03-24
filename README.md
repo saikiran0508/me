@@ -16,3 +16,37 @@ df['Time2_numeric'] = df['Time2'].apply(datetime_to_numeric)
 
 # Display the DataFrame with the converted columns
 print(df)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def datetime_to_numeric(datetime_val):
+    if isinstance(datetime_val, datetime):
+        reference_date = datetime_val.replace(hour=0, minute=0, second=0, microsecond=0)
+    elif isinstance(datetime_val, time):
+        reference_date = datetime.combine(datetime.today(), datetime_val)
+    else:
+        raise ValueError("Unsupported data type")
+        
+    total_seconds = (datetime_val - reference_date).total_seconds()
+    total_hours = total_seconds / 3600
+    return total_hours
