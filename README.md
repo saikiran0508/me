@@ -1,52 +1,23 @@
-import pandas as pd
+from datetime import datetime
 
-# Read the Excel file into a DataFrame
-df = pd.read_excel('your_excel_file.xlsx')
+def time_to_decimal(time_str):
+    try:
+        # Parse the time string to a datetime object
+        time_obj = datetime.strptime(time_str, '%I:%M:%S %p')
+    except ValueError:
+        try:
+            time_obj = datetime.strptime(time_str, '%m/%d/%Y %I:%M %p')
+        except ValueError:
+            return "Invalid time format"
+    
+    # Convert time to decimal number
+    decimal_time = time_obj.hour + time_obj.minute / 60 + time_obj.second / 3600
+    return round(decimal_time, 2)
 
-# Function to convert datetime object to numerical format
-def datetime_to_numeric(datetime_val):
-    reference_date = pd.Timestamp('1900-01-01')
-    total_seconds = (datetime_val - reference_date).total_seconds()
-    total_hours = total_seconds / 3600
-    return total_hours
+# Test the function
+time_values = ['2:39:59 AM', '1/6/1900 9:20 PM']
 
-# Convert the columns containing datetime values to numerical format
-df['Time1_numeric'] = df['Time1'].apply(datetime_to_numeric)
-df['Time2_numeric'] = df['Time2'].apply(datetime_to_numeric)
+for time_value in time_values:
+    decimal_time = time_to_decimal(time_value)
+    print(f"{time_value} -> {decimal_time}")
 
-# Display the DataFrame with the converted columns
-print(df)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-def datetime_to_numeric(datetime_val):
-    if isinstance(datetime_val, datetime):
-        reference_date = datetime_val.replace(hour=0, minute=0, second=0, microsecond=0)
-    elif isinstance(datetime_val, time):
-        reference_date = datetime.combine(datetime.today(), datetime_val)
-    else:
-        raise ValueError("Unsupported data type")
-        
-    total_seconds = (datetime_val - reference_date).total_seconds()
-    total_hours = total_seconds / 3600
-    return total_hours
