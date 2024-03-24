@@ -1,23 +1,13 @@
 import pandas as pd
-import numpy as np
 
-# Assuming you already have a DataFrame df with 'country' and 'class' columns
+# Read the Excel file
+excel_file = "your_excel_file.xlsx"
+df = pd.read_excel(excel_file)
 
-# Define conditions for the new column
-conditions = [
-    (df['country'] == 'UK') & (df['class'] == 'Personal'),
-    # Add more conditions as needed
-]
+# Convert specific columns to numeric type
+columns_to_convert = ['Column1', 'Column2']  # Replace 'Column1' and 'Column2' with your actual column names
+df[columns_to_convert] = df[columns_to_convert].apply(pd.to_numeric, errors='coerce')
 
-# Define values for the new column corresponding to each condition
-values = ['fpb']
-
-# Add more values as needed, matching the conditions
-
-# Create the new column based on the conditions
-df['new_column'] = np.select(conditions, values, default='default_value')
-
-# Replace 'default_value' with the default value you want if none of the conditions are met
-
-# Display the updated DataFrame
-print(df)
+# Write the modified DataFrame back to an Excel file
+output_excel_file = "modified_excel_file.xlsx"
+df.to_excel(output_excel_file, index=False)
