@@ -1,41 +1,23 @@
-import csv
 from datetime import datetime
 
-# Function to calculate the difference in days between two date-time values
-def calculate_days_difference(datetime1, datetime2):
-    # Convert the date-time strings to datetime objects
-    dt1 = datetime.strptime(datetime1, '%m/%d/%Y %I:%M%p')
-    dt2 = datetime.strptime(datetime2, '%m/%d/%Y %I:%M%p')
+def excel_datetime_to_days(excel_datetime):
+    # Reference datetime in Excel
+    reference_datetime = datetime(1900, 1, 1, 0, 0, 0)
 
-    # Calculate the difference in seconds
-    time_difference = (dt2 - dt1).total_seconds()
+    # Parse Excel datetime string
+    if ' ' in excel_datetime:
+        dt_format = "%m/%d/%Y %I:%M:%S %p"  # Excel datetime format with date and time
+    else:
+        dt_format = "%I:%M:%S"  # Time format only
+        
+    excel_dt = datetime.strptime(excel_datetime, dt_format)
 
-    # Convert seconds to days
-    days_difference = time_difference / (24 * 60 * 60)
+    # Calculate timedelta and convert to days
+    delta = excel_dt - reference_datetime
+    return delta.days + delta.seconds / (24 * 3600)  # Convert seconds to days
 
-    return days_difference
-
-# Read the input CSV file
-input_file = 'input.csv'
-output_file = 'output.csv'
-
-with open(input_file, 'r') as csvfile:
-    reader = csv.reader(csvfile)
-    next(reader)  # Skip header row
-    data = list(reader)
-
-# Calculate the differences and store them in a list
-differences = []
-for row in data:
-    datetime1 = row[0]  # Assuming column 1 contains the first date-time value
-    datetime2 = row[1]  # Assuming column 2 contains the second date-time value
-    difference = calculate_days_difference(datetime1, datetime2)
-    differences.append([difference])
-
-# Write the differences to a new CSV file
-with open(output_file, 'w', newline='') as csvfile:
-    writer = csv.writer(csvfile)
-    writer.writerow(['Difference in Days'])  # Write header
-    writer.writerows(differences)
-
-print("Differences calculated and saved to", output_file)
+# Test cases
+excel_datetimes = ["1/6/1900 9:20:15 PM", "8:02:07"]
+for excel_dt in excel_datetimes:
+    days = excel_datetime_to_days(excel_dt)
+    print(f"{excel_dt}: {days} days")
