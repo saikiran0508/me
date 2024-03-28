@@ -1,23 +1,26 @@
 from datetime import datetime
 
-def excel_datetime_to_days(excel_datetime):
-    # Reference datetime in Excel
-    reference_datetime = datetime(1900, 1, 1, 0, 0, 0)
+def convert_to_days(time_str):
+    # Define the base datetime
+    base_datetime = datetime(1900, 1, 1, 0, 0, 0)
 
-    # Parse Excel datetime string
-    if ' ' in excel_datetime:
-        dt_format = "%m/%d/%Y %I:%M:%S %p"  # Excel datetime format with date and time
-    else:
-        dt_format = "%I:%M:%S"  # Time format only
-        
-    excel_dt = datetime.strptime(excel_datetime, dt_format)
+    # Parse the input time string
+    parsed_time = datetime.strptime(time_str, '%m/%d/%Y %I:%M:%S %p') if '/' in time_str else datetime.strptime(time_str, '%I:%M:%S %p')
 
-    # Calculate timedelta and convert to days
-    delta = excel_dt - reference_datetime
-    return delta.days + delta.seconds / (24 * 3600)  # Convert seconds to days
+    # Calculate the difference
+    time_difference = parsed_time - base_datetime
 
-# Test cases
-excel_datetimes = ["1/6/1900 9:20:15 PM", "8:02:07"]
-for excel_dt in excel_datetimes:
-    days = excel_datetime_to_days(excel_dt)
-    print(f"{excel_dt}: {days} days")
+    # Convert the difference to days
+    days_difference = time_difference.total_seconds() / (60 * 60 * 24)
+
+    return days_difference
+
+# Example usage:
+time1 = '1/6/1900 9:20:15 PM'
+time2 = '8:02:07 AM'
+
+days1 = convert_to_days(time1)
+days2 = convert_to_days(time2)
+
+print("Difference in days for time1:", days1)
+print("Difference in days for time2:", days2)
