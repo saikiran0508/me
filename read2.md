@@ -1,26 +1,16 @@
-from datetime import datetime
+def modify_sas_script(input_file, output_file, old_path, new_path):
+    with open(input_file, 'r') as f:
+        script_content = f.read()
 
-def convert_to_days(time_str):
-    # Define the base datetime
-    base_datetime = datetime(1900, 1, 1, 0, 0, 0)
+    modified_content = script_content.replace(old_path, new_path)
 
-    # Parse the input time string
-    parsed_time = datetime.strptime(time_str, '%m/%d/%Y %I:%M:%S %p') if '/' in time_str else datetime.strptime(time_str, '%I:%M:%S %p')
-
-    # Calculate the difference
-    time_difference = parsed_time - base_datetime
-
-    # Convert the difference to days
-    days_difference = time_difference.total_seconds() / (60 * 60 * 24)
-
-    return days_difference
+    with open(output_file, 'w') as f:
+        f.write(modified_content)
 
 # Example usage:
-time1 = '1/6/1900 9:20:15 PM'
-time2 = '8:02:07 AM'
+input_file = 'original_script.sas'
+output_file = 'modified_script.sas'
+old_path = '/old/path/'
+new_path = '/new/path/'
 
-days1 = convert_to_days(time1)
-days2 = convert_to_days(time2)
-
-print("Difference in days for time1:", days1)
-print("Difference in days for time2:", days2)
+modify_sas_script(input_file, output_file, old_path, new_path)
