@@ -1,22 +1,11 @@
-import paramiko
+import shutil
 
-# Set up SSH client
-ssh_client = paramiko.SSHClient()
-ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+# Define the local file path
+local_file_path = 'local_file.txt'
 
-# Connect to the SSH server
-ssh_client.connect(hostname='your_host', port=22, username='your_username', password='your_password')
+# Define the network folder path
+network_folder_path = r'\\server\folder'
 
-# Create an SCP client
-scp_client = ssh_client.open_sftp()
+# Upload the file to the network folder
+shutil.copy(local_file_path, network_folder_path)
 
-# Specify remote file path and local destination
-remote_file_path = '/path/to/remote/file.txt'
-local_destination = '/path/to/local/destination/'
-
-# Download the file
-scp_client.get(remote_file_path, local_destination)
-
-# Close the SCP client and SSH connection
-scp_client.close()
-ssh_client.close()
