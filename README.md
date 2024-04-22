@@ -1,15 +1,26 @@
-import openpyxl
+import paramiko
 
-# Load the Excel workbook
-workbook = openpyxl.load_workbook('your_excel_file.xlsx')
+# Define the SSH connection parameters
+hostname = 'your_hostname'
+port = 22
+username = 'your_username'
+password = 'your_password'
 
-# Assuming your data is in the first sheet, you may need to change it accordingly
-sheet = workbook.active
+# Connect to the SSH server
+ssh_client = paramiko.SSHClient()
+ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+ssh_client.connect(hostname, port, username, password)
 
-# Iterate through each cell in the column
-for cell in sheet['A']:
-    # Change the cell format to number
-    cell.number_format = '0.00'
+# Open an SFTP session
+sftp_client = ssh_client.open_sftp()
 
-# Save the changes
-workbook.save('formatted_excel_file.xlsx')
+# Define the remote and local file paths
+remote_file_path = '/path/to/remote/file.txt'
+local_file_path = '/path/to/local/file.txt'
+
+# Download the file
+sftp_client.get(remote_file_path, local_file_path)
+
+# Close the SFTP session and SSH connection
+sftp_client.close()
+ssh_client.close()
