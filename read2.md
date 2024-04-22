@@ -1,19 +1,16 @@
-import paramiko
+from pyad import *
 
-try:
-    # Set up SSH client
-    ssh_client = paramiko.SSHClient()
-    ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+# Connect to Active Directory
+pyad.set_defaults(ldap_server="your_ldap_server_address")
 
-    # Connect to the SSH server
-    ssh_client.connect(hostname='your_host', port=22, username='your_username', password='your_password')
+# Specify the path where you want to upload the file
+adroot_path = "LDAP://your_adroot_path"
+adroot_folder = pyad.adcontainer.ADContainer.from_dn(adroot_path)
 
-    print("Connection successful!")
+# Define the file path of the file to upload
+local_file_path = "path_to_local_file"
+file_name = "file_name.txt"
 
-    # If the connection is successful, you can proceed with your other operations here
-    
-    # Close the SSH connection
-    ssh_client.close()
-
-except paramiko.SSHException as e:
-    print("Error:", e)
+# Upload the file to the Active Directory root
+with open(local_file_path, 'rb') as f:
+    adroot_folder.upload(file_name, f.read())
