@@ -1,26 +1,23 @@
-import paramiko
+import os
 
-# Define the SSH connection parameters
-hostname = 'your_hostname'
-port = 22
-username = 'your_username'
-password = 'your_password'
+def generate_file_paths(country_names, report_names, dates):
+    file_paths = []
+    for country in country_names:
+        for report in report_names:
+            for date in dates:
+                file_name = f"{country}_{report}_{date}.txt"
+                file_path = os.path.join("path_to_directory", file_name)
+                file_paths.append(file_path)
+    return file_paths
 
-# Connect to the SSH server
-ssh_client = paramiko.SSHClient()
-ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-ssh_client.connect(hostname, port, username, password)
+# Example lists of country names, report names, and dates
+country_names = ["USA", "Canada", "UK"]
+report_names = ["Sales", "Finance", "Inventory"]
+dates = ["2024-01-01", "2024-01-02", "2024-01-03"]
 
-# Open an SFTP session
-sftp_client = ssh_client.open_sftp()
+# Generating file paths
+file_paths = generate_file_paths(country_names, report_names, dates)
 
-# Define the remote and local file paths
-remote_file_path = '/path/to/remote/file.txt'
-local_file_path = '/path/to/local/file.txt'
-
-# Download the file
-sftp_client.get(remote_file_path, local_file_path)
-
-# Close the SFTP session and SSH connection
-sftp_client.close()
-ssh_client.close()
+# Printing the generated file paths
+for path in file_paths:
+    print(path)
