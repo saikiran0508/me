@@ -1,44 +1,54 @@
-/* Sample input dataset */
-data input_dataset;
-    input id $ date : date9. numeric_code latest_rank1 earliest_rank2;
-    format date date9.;
-    datalines;
-A 01JAN2021 51 0 1
-A 05JAN2021 56 1 0
-B 10JAN2021 51 0 1
-B 15JAN2021 56 1 0
-C 20JAN2021 51 0 1
-C 25JAN2021 52 0 0
-C 30JAN2021 56 1 0
-;
+ods excel file="C:\path\to\yourfile.xlsx" options(sheet_name="Sheet1" autofilter="all");
+
+proc print data=your_dataset noobs;
 run;
 
-/* Print the input dataset for reference */
-proc print data=input_dataset;
-    title 'Input Dataset';
+ods excel close;
+
+
+ods excel file="C:\path\to\yourfile.xlsx" options(sheet_name="Sheet1");
+
+/* Define a style with bold headers and borders */
+proc template;
+    define style styles.myStyle;
+        parent=styles.excelxp;
+        class header /
+            font_weight=bold
+            bordercolor=black
+            borderwidth=2pt;
+        class data /
+            bordercolor=black
+            borderwidth=1pt;
+        class table /
+            bordercolor=black
+            borderwidth=2pt;
+    end;
 run;
 
-/* Create a new dataset with start_date and end_date columns */
-data temp_dataset;
-    set input_dataset;
-    length start_date end_date 8; /* Ensure dates are numeric (SAS dates) */
-    format start_date end_date date9.; /* Apply date format */
+ods excel options(style=styles.myStyle);
+
+proc print data=your_dataset noobs;
 run;
 
-/* Update the new columns based on the given conditions */
-proc sql;
-    /* Add start_date based on numeric_code and earliest_rank2 */
-    update temp_dataset
-    set start_date = date
-    where numeric_code = 51 and earliest_rank2 = 1;
+ods excel close;
 
-    /* Add end_date based on numeric_code and latest_rank1 */
-    update temp_dataset
-    set end_date = date
-    where numeric_code = 56 and latest_rank1 = 1;
-quit;
 
-/* Print the final dataset to verify the result */
-proc print data=temp_dataset;
-    title 'Final Dataset with Start and End Dates';
+
+ods excel file="C:\path\to\yourfile.xlsx" options(sheet_name="Sheet1" autofilter="all" auto_width="on");
+
+proc print data=your_dataset noobs;
+run;
+
+ods excel close;
+
+
+
+
+filename myemail email 'recipient@example.com'
+                   subject='Your SAS dataset'
+                   attach='C:\path\to\yourfile.xlsx';
+
+data _null_;
+    file myemail;
+    put 'Please find the attached Excel file.';
 run;
