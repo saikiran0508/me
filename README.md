@@ -1,23 +1,27 @@
-import os
+/* Connect to Excel to format headers */
+proc sql;
+    connect to excel (path="path-to-your-excel-file.xlsx");
 
-def generate_file_paths(country_names, report_names, dates):
-    file_paths = []
-    for country in country_names:
-        for report in report_names:
-            for date in dates:
-                file_name = f"{country}_{report}_{date}.txt"
-                file_path = os.path.join("path_to_directory", file_name)
-                file_paths.append(file_path)
-    return file_paths
+    /* Format headers in Sheet1 */
+    execute(
+        update [Sheet1$A1:Z1]
+        set font.color='000000', font.bold=true, wrap_text=true
+    ) by excel;
 
-# Example lists of country names, report names, and dates
-country_names = ["USA", "Canada", "UK"]
-report_names = ["Sales", "Finance", "Inventory"]
-dates = ["2024-01-01", "2024-01-02", "2024-01-03"]
+    /* Format headers in Sheet2 */
+    execute(
+        update [Sheet2$A1:Z1]
+        set font.color='000000', font.bold=true, wrap_text=true
+    ) by excel;
 
-# Generating file paths
-file_paths = generate_file_paths(country_names, report_names, dates)
+    /* Format headers in Sheet3 */
+    execute(
+        update [Sheet3$A1:Z1]
+        set font.color='000000', font.bold=true, wrap_text=true
+    ) by excel;
 
-# Printing the generated file paths
-for path in file_paths:
-    print(path)
+    disconnect from excel;
+quit;
+
+/* Clear the library */
+libname myexcel clear;
