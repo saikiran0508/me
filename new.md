@@ -1,59 +1,60 @@
-import paramiko
-import re
-import os
+/* Prepare the datasets */
+data work.dataset1;
+    set sashelp.class; /* Example dataset */
+    /* Make any necessary changes here */
+run;
 
-# Define the connection parameters
-hostname = 'your_server_hostname'
-port = 22
-username = 'your_username'
-password = 'your_password'
+data work.dataset2;
+    set sashelp.cars; /* Example dataset */
+    /* Make any necessary changes here */
+run;
 
-# Define the directory on the server where the files are located
-remote_directory = '/path/to/remote/directory/in/winscp'
+data work.dataset3;
+    set sashelp.iris; /* Example dataset */
+    /* Make any necessary changes here */
+run;
 
-# Define the countries and report names you want to filter for
-countries = ['Country1', 'Country2']  # Add more countries if needed
-report_names = ['Gen01', 'Gen04']  # Add more report names if needed
+/* Advanced formatting using ODS EXCEL */
+ods excel file="/path/to/your/output_file.xlsx" options(sheet_interval='none' sheet_name='Sheet1');
 
-# Create an SSH client
-ssh = paramiko.SSHClient()
-ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+proc report data=work.dataset1 nowd;
+    columns _all_;
+    define _all_ / style(header)=[foreground=black font_weight=bold] 
+                   style(column)=[borderstyle=solid bordercolor=black];
+    compute before _page_;
+        call define(_page_, 'style', 'style=[bordertopwidth=2 bordertopcolor=black borderbottomwidth=2 borderbottomcolor=black]');
+    endcomp;
+    compute after _page_;
+        call define(_page_, 'style', 'style=[borderbottomwidth=2 borderbottomcolor=black]');
+    endcomp;
+run;
 
-# Connect to the server
-ssh.connect(hostname, port, username, password)
+ods excel options(sheet_name='Sheet2');
 
-# Create an SCP client
-scp = ssh.open_sftp()
+proc report data=work.dataset2 nowd;
+    columns _all_;
+    define _all_ / style(header)=[foreground=black font_weight=bold] 
+                   style(column)=[borderstyle=solid bordercolor=black];
+    compute before _page_;
+        call define(_page_, 'style', 'style=[bordertopwidth=2 bordertopcolor=black borderbottomwidth=2 borderbottomcolor=black]');
+    endcomp;
+    compute after _page_;
+        call define(_page_, 'style', 'style=[borderbottomwidth=2 borderbottomcolor=black]');
+    endcomp;
+run;
 
-# List files in the remote directory
-files = scp.listdir(remote_directory)
+ods excel options(sheet_name='Sheet3');
 
-# Filter files based on country and report name
-filtered_files = {}
-for file_name in files:
-    for country in countries:
-        for report_name in report_names:
-            regex_pattern = fr"{country}_{report_name}_\d{{2}}[A-Z]{{3}}\d{{4}}"  # regex for filename format
-            if re.match(regex_pattern, file_name):
-                if country not in filtered_files:
-                    filtered_files[country] = []
-                filtered_files[country].append(file_name)
+proc report data=work.dataset3 nowd;
+    columns _all_;
+    define _all_ / style(header)=[foreground=black font_weight=bold] 
+                   style(column)=[borderstyle=solid bordercolor=black];
+    compute before _page_;
+        call define(_page_, 'style', 'style=[bordertopwidth=2 bordertopcolor=black borderbottomwidth=2 borderbottomcolor=black]');
+    endcomp;
+    compute after _page_;
+        call define(_page_, 'style', 'style=[borderbottomwidth=2 borderbottomcolor=black]');
+    endcomp;
+run;
 
-# Define local directory to save downloaded files
-local_directory = '/path/to/local/directory'
-
-# Download filtered files and segregate by country
-for country, files in filtered_files.items():
-    country_directory = os.path.join(local_directory, country)
-    os.makedirs(country_directory, exist_ok=True)
-    for file_name in files:
-        remote_file_path = f"{remote_directory}/{file_name}"
-        local_file_path = os.path.join(country_directory, file_name)
-        scp.get(remote_file_path, local_file_path)
-        print(f"Downloaded {file_name} for {country}")
-
-# Close the SCP and SSH clients
-scp.close()
-ssh.close()
-
-print("All files downloaded successfully.")
+ods excel close;
