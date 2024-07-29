@@ -1,10 +1,16 @@
-from datetime import datetime, timedelta
+from cryptography.fernet import Fernet
 
-def get_formatted_date(days_ago):
-    target_date = datetime.now() - timedelta(days=days_ago)
-    formatted_date = target_date.strftime("%d%b%Y").upper()
-    return formatted_date
+# Generate a key for encryption
+key = Fernet.generate_key()
+fernet = Fernet(key)
 
-# Example usage:
-print(get_formatted_date(0))  # Output: 29JUL2024
-print(get_formatted_date(1))  # Output: 28JUL2024
+# Encrypt the password
+password = "my_secret_password"
+encrypted_password = fernet.encrypt(password.encode())
+
+# Decrypt the password
+decrypted_password = fernet.decrypt(encrypted_password).decode()
+
+print(f"Key: {key}")
+print(f"Encrypted password: {encrypted_password}")
+print(f"Decrypted password: {decrypted_password}")
