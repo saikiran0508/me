@@ -1,30 +1,36 @@
-ods excel file="C:\path\to\your\new_file.xlsx" options(sheet_interval="none" gridlines="off");
+from cryptography.fernet import Fernet
+import pandas as pd
 
-    /* For Sheet 1 */
-    ods excel options(sheet_name="Sheet1");
-    proc print data=your_data_1;
-        var your_columns;
-        style(header)={font_weight=bold};
-        style(data)={bordercolor=black borderwidth=1};
-        title "Your Title for Sheet 1";
-    run;
+# Load or generate your Fernet key (generate once and save it securely)
+# key = Fernet.generate_key()
+# Store this key safely and reuse it
+key = b'your-previously-generated-key'  # replace with your actual key
+fernet = Fernet(key)
 
-    /* For Sheet 2 */
-    ods excel options(sheet_name="Sheet2");
-    proc print data=your_data_2;
-        var your_columns;
-        style(header)={font_weight=bold};
-        style(data)={bordercolor=black borderwidth=1};
-        title "Your Title for Sheet 2";
-    run;
+# Sample DataFrame
+df = pd.DataFrame({'id': ['C001', 'C002', 'C001', 'B123', 'C002']})
 
-    /* For Sheet 3 */
-    ods excel options(sheet_name="Sheet3");
-    proc print data=your_data_3;
-        var your_columns;
-        style(header)={font_weight=bold};
-        style(data)={bordercolor=black borderwidth=1};
-        title "Your Title for Sheet 3";
-    run;
+# Cache to store original → encrypted ID mapping
+encrypt_cache = {}
 
-ods excel close;
+# Encrypt function with caching
+def encrypt_id(x):
+    if x not in encrypt_cache:
+        encrypted = fernet.encrypt(x.encode()).decode()
+        encrypt_cache[x] = encrypted
+    return encrypt_cache[x]
+
+# Decrypt function
+def decrypt_id(x):
+    try:
+        return fernet.decrypt(x.encode()).decode()
+    except Exception:
+        return x  # return as-is if not encrypted
+
+# Apply encryption
+df['encrypted_id'] = df['id'].apply(encrypt_id)
+
+# Apply decryption (optional check)
+df['decrypted_id'] = df['encrypted_id'].apply(decrypt_id)
+
+print(df)
