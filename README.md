@@ -1,36 +1,44 @@
-from cryptography.fernet import Fernet
-import pandas as pd
+import os
+import time
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 
-# Load or generate your Fernet key (generate once and save it securely)
-# key = Fernet.generate_key()
-# Store this key safely and reuse it
-key = b'your-previously-generated-key'  # replace with your actual key
-fernet = Fernet(key)
+# Set download directory
+download_dir = "/path/to/downloads"
 
-# Sample DataFrame
-df = pd.DataFrame({'id': ['C001', 'C002', 'C001', 'B123', 'C002']})
+# Configure Chrome options
+chrome_options = Options()
+chrome_options.add_experimental_option("prefs", {
+    "download.default_directory": download_dir,
+    "download.prompt_for_download": False,
+    "download.directory_upgrade": True,
+    "safebrowsing.enabled": True
+})
 
-# Cache to store original → encrypted ID mapping
-encrypt_cache = {}
+# Initialize driver
+driver = webdriver.Chrome(options=chrome_options)
 
-# Encrypt function with caching
-def encrypt_id(x):
-    if x not in encrypt_cache:
-        encrypted = fernet.encrypt(x.encode()).decode()
-        encrypt_cache[x] = encrypted
-    return encrypt_cache[x]
+def is_download_completed(download_path):
+    """
+    Wait until there are no .crdownload (or .part) files in the folder.
+    """
+    while True:
+        time.sleep(1)  # Wait a bit before checking
+        if not any(fname.endswith(".crdownload") for fname in os.listdir(download_path)):
+            return True
 
-# Decrypt function
-def decrypt_id(x):
-    try:
-        return fernet.decrypt(x.encode()).decode()
-    except Exception:
-        return x  # return as-is if not encrypted
+# Sample loop for multiple files
+for url in file_urls:
+    driver.get(url)  # Or interact with page to reach download
+    driver.find_element("id", "download_button").click()
 
-# Apply encryption
-df['encrypted_id'] = df['id'].apply(encrypt_id)
+    # Wait for new tab to open
+    time.sleep(1)
+    driver.switch_to.window(driver.window_handles[-1])  # Switch to download tab
 
-# Apply decryption (optional check)
-df['decrypted_id'] = df['encrypted_id'].apply(decrypt_id)
+    # Wait for download to complete
+    is_download_completed(download_dir)
 
-print(df)
+    # Close the download tab and return to main
+    driver.close()
+    driver.switch_to.window(driver.window_handles[0])
