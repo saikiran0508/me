@@ -1,44 +1,26 @@
-import os
-import time
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
+from Crypto.Cipher import AES
+import base64
+import pandas as pd
+from Crypto.Util.Padding import pad, unpad
 
-# Set download directory
-download_dir = "/path/to/downloads"
+# 16-byte (128-bit) key (must be fixed and securely stored)
+key = b'my16bytefixedkey'
 
-# Configure Chrome options
-chrome_options = Options()
-chrome_options.add_experimental_option("prefs", {
-    "download.default_directory": download_dir,
-    "download.prompt_for_download": False,
-    "download.directory_upgrade": True,
-    "safebrowsing.enabled": True
-})
+# AES encryption with ECB mode (deterministic and shorter output)
+def encrypt_id(text):
+    cipher = AES.new(key, AES.MODE_ECB)
+    padded = pad(text.encode(), AES.block_size)
+    encrypted = cipher.encrypt(padded)
+    return base64.urlsafe_b64encode(encrypted).decode()
 
-# Initialize driver
-driver = webdriver.Chrome(options=chrome_options)
+def decrypt_id(enc_text):
+    cipher = AES.new(key, AES.MODE_ECB)
+    decrypted = cipher.decrypt(base64.urlsafe_b64decode(enc_text.encode()))
+    return unpad(decrypted, AES.block_size).decode()
 
-def is_download_completed(download_path):
-    """
-    Wait until there are no .crdownload (or .part) files in the folder.
-    """
-    while True:
-        time.sleep(1)  # Wait a bit before checking
-        if not any(fname.endswith(".crdownload") for fname in os.listdir(download_path)):
-            return True
+# Example DataFrame
+df = pd.DataFrame({'id': ['C001', 'C002', 'C001', 'B123']})
+df['encrypted_id'] = df['id'].apply(encrypt_id)
+df['decrypted_id'] = df['encrypted_id'].apply(decrypt_id)
 
-# Sample loop for multiple files
-for url in file_urls:
-    driver.get(url)  # Or interact with page to reach download
-    driver.find_element("id", "download_button").click()
-
-    # Wait for new tab to open
-    time.sleep(1)
-    driver.switch_to.window(driver.window_handles[-1])  # Switch to download tab
-
-    # Wait for download to complete
-    is_download_completed(download_dir)
-
-    # Close the download tab and return to main
-    driver.close()
-    driver.switch_to.window(driver.window_handles[0])
+print(df)
