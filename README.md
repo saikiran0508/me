@@ -1,40 +1,36 @@
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import padding
-import base64
-import pandas as pd
+import win32com.client
+import os
+from datetime import datetime
 
-# 16-byte (128-bit) key and IV — use a secure and consistent key for real use
-key = b'mysecretaeskey16'
-iv = b'fixedinitvector1'
+# === CONFIGURATION ===
+SAVE_FOLDER = r"C:\Your\Target\Folder"  # Change to your desired folder path
+KEYWORD = "Daily Report"  # Optional: Filter by subject or keyword in subject
+ONLY_TODAY = True  # Set to False to get attachments from all time
 
-# Encrypt function (AES-CBC with padding)
-def encrypt_id(text):
-    padder = padding.PKCS7(128).padder()
-    padded_data = padder.update(text.encode()) + padder.finalize()
+# === SCRIPT ===
+outlook = win32com.client.Dispatch("Outlook.Application").GetNamespace("MAPI")
+inbox = outlook.GetDefaultFolder(6)  # 6 = Inbox
 
-    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
-    encryptor = cipher.encryptor()
-    ct = encryptor.update(padded_data) + encryptor.finalize()
+messages = inbox.Items
+messages.Sort("[ReceivedTime]", True)  # Sort latest first
 
-    return base64.urlsafe_b64encode(ct).decode()
+today = datetime.today().date()
+downloaded = 0
 
-# Decrypt function
-def decrypt_id(enc_text):
-    ct = base64.urlsafe_b64decode(enc_text.encode())
+for message in messages:
+    try:
+        if ONLY_TODAY and message.ReceivedTime.date() != today:
+            break  # Stop when older emails are reached
 
-    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
-    decryptor = cipher.decryptor()
-    padded_data = decryptor.update(ct) + decryptor.finalize()
+        if KEYWORD.lower() in message.Subject.lower():
+            attachments = message.Attachments
+            for attachment in attachments:
+                save_path = os.path.join(SAVE_FOLDER, attachment.FileName)
+                attachment.SaveAsFile(save_path)
+                print(f"Downloaded: {attachment.FileName}")
+                downloaded += 1
 
-    unpadder = padding.PKCS7(128).unpadder()
-    data = unpadder.update(padded_data) + unpadder.finalize()
+    except Exception as e:
+        print(f"Error processing email: {e}")
 
-    return data.decode()
-
-# Example usage with pandas
-df = pd.DataFrame({'id': ['C001', 'B002', 'C001', 'X999']})
-df['encrypted_id'] = df['id'].apply(encrypt_id)
-df['decrypted_id'] = df['encrypted_id'].apply(decrypt_id)
-
-print(df)
+print(f"\nDone. Total attachments downloaded: {downloaded}")
