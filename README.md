@@ -1,16 +1,18 @@
-from office365.runtime.auth.user_credential import UserCredential
 from office365.sharepoint.client_context import ClientContext
+from office365.runtime.auth.authentication_context import AuthenticationContext
 
-# SharePoint site and file details
 site_url = "https://yourcompany.sharepoint.com/sites/yoursite"
-relative_url = "/sites/yoursite/Shared Documents/yourfile.docx"
-download_path = "yourfile.docx"
-
-# Authentication
-username = "your.email@yourcompany.com"
+username = "your_email@yourcompany.com"
 password = "your_password"
 
-ctx = ClientContext(site_url).with_credentials(UserCredential(username, password))
-response = ctx.web.get_file_by_server_relative_url(relative_url).download(download_path).execute_query()
+ctx_auth = AuthenticationContext(site_url)
+if ctx_auth.acquire_token_for_user(username, password):
+    ctx = ClientContext(site_url, ctx_auth)
+    file_url = "/sites/yoursite/Shared Documents/filename.xlsx"
+    download_path = "filename.xlsx"
 
-print("File downloaded successfully.")
+    with open(download_path, "wb") as output_file:
+        ctx.web.get_file_by_server_relative_url(file_url).download(output_file).execute_query()
+    print("Download completed.")
+else:
+    print("Authentication failed.")
