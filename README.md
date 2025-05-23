@@ -1,17 +1,16 @@
 from selenium import webdriver
-from selenium.webdriver.common.by import By
 
+# Start the driver
 driver = webdriver.Chrome()
-driver.get("https://example.com")
 
-# Click the button with visible text "Submit"
-button = driver.find_element(By.XPATH, "//button[text()='Submit']")
-button.click()
+# Open a website
+driver.get("https://www.google.com")
 
+# Open a new tab using JavaScript
+driver.execute_script("window.open('');")
 
+# Switch to the new tab
+driver.switch_to.window(driver.window_handles[1])
 
-
-
-
-option = driver.find_element(By.XPATH, "//div[contains(@class, 'ms-list-itemLink') and contains(text(), 'Download')]")
-option.click()
+# Open another URL in the new tab
+driver.get("https://www.bing.com")
