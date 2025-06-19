@@ -1,60 +1,28 @@
-/* Prepare the datasets */
-data work.dataset1;
-    set sashelp.class; /* Example dataset */
-    /* Make any necessary changes here */
-run;
+import pandas as pd
+import xlwings as xw
 
-data work.dataset2;
-    set sashelp.cars; /* Example dataset */
-    /* Make any necessary changes here */
-run;
+# Load your DataFrame (or create it)
+df = pd.read_excel("source.xlsx")  # Replace with your actual source
 
-data work.dataset3;
-    set sashelp.iris; /* Example dataset */
-    /* Make any necessary changes here */
-run;
+# Path to your .xlsb file
+xlsb_path = r"C:\path\to\yourfile.xlsb"
+sheet_name = "Sheet1"  # Change to your target sheet name
+start_cell = "A1"      # Where to begin pasting
 
-/* Advanced formatting using ODS EXCEL */
-ods excel file="/path/to/your/output_file.xlsx" options(sheet_interval='none' sheet_name='Sheet1');
+# Start Excel app
+app = xw.App(visible=False)  # visible=True to watch the paste
+wb = app.books.open(xlsb_path)
+ws = wb.sheets[sheet_name]
 
-proc report data=work.dataset1 nowd;
-    columns _all_;
-    define _all_ / style(header)=[foreground=black font_weight=bold] 
-                   style(column)=[borderstyle=solid bordercolor=black];
-    compute before _page_;
-        call define(_page_, 'style', 'style=[bordertopwidth=2 bordertopcolor=black borderbottomwidth=2 borderbottomcolor=black]');
-    endcomp;
-    compute after _page_;
-        call define(_page_, 'style', 'style=[borderbottomwidth=2 borderbottomcolor=black]');
-    endcomp;
-run;
+# Optional: clear previous data
+ws.range(start_cell).expand().clear_contents()
 
-ods excel options(sheet_name='Sheet2');
+# Paste as values (headers + data)
+data_to_paste = [df.columns.tolist()] + df.values.tolist()
+ws.range(start_cell).value = data_to_paste
 
-proc report data=work.dataset2 nowd;
-    columns _all_;
-    define _all_ / style(header)=[foreground=black font_weight=bold] 
-                   style(column)=[borderstyle=solid bordercolor=black];
-    compute before _page_;
-        call define(_page_, 'style', 'style=[bordertopwidth=2 bordertopcolor=black borderbottomwidth=2 borderbottomcolor=black]');
-    endcomp;
-    compute after _page_;
-        call define(_page_, 'style', 'style=[borderbottomwidth=2 borderbottomcolor=black]');
-    endcomp;
-run;
+# Save and close
+wb.save()
+wb.close()
+app.quit()
 
-ods excel options(sheet_name='Sheet3');
-
-proc report data=work.dataset3 nowd;
-    columns _all_;
-    define _all_ / style(header)=[foreground=black font_weight=bold] 
-                   style(column)=[borderstyle=solid bordercolor=black];
-    compute before _page_;
-        call define(_page_, 'style', 'style=[bordertopwidth=2 bordertopcolor=black borderbottomwidth=2 borderbottomcolor=black]');
-    endcomp;
-    compute after _page_;
-        call define(_page_, 'style', 'style=[borderbottomwidth=2 borderbottomcolor=black]');
-    endcomp;
-run;
-
-ods excel close;
