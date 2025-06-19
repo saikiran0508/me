@@ -8,3 +8,10 @@ num_rows, num_cols = df.shape
 for i in range(num_rows):
     for j in range(num_cols):
         ws.Cells(i + 2, j + 1).Value = df.iloc[i, j]
+
+
+
+for col in df.columns:
+    if pd.api.types.is_object_dtype(df[col]):
+        if pd.to_datetime(df[col], errors='coerce').notna().all():
+            df[col] = pd.to_datetime(df[col]).dt.tz_localize(None)
