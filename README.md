@@ -1,22 +1,19 @@
 import pandas as pd
 
-# Example DataFrame
+# Read the Excel file
 # df = pd.read_excel('your_file.xlsx') 
 
-# Replace blanks ("") with NaN
-df['G174641'] = df['G174641'].replace("", pd.NA)
+# Convert to datetime (if not already)
+df['G174641'] = pd.to_datetime(df['G174641'], errors='coerce')
+df['E174641'] = pd.to_datetime(df['E174641'], errors='coerce')
 
-# Convert columns to numeric (if needed), coercing errors to NaN
-df['G174641'] = pd.to_numeric(df['G174641'], errors='coerce')
-df['E174641'] = pd.to_numeric(df['E174641'], errors='coerce')
-
-# Apply the formula logic
-def calculate_value(e, g):
+# Apply the logic
+def date_diff(e, g):
     try:
-        if pd.isna(g) or g == 0:
+        if pd.isna(g):
             return 0
-        return e - g
+        return (e - g).days
     except:
         return 0
 
-df['Result'] = df.apply(lambda row: calculate_value(row['E174641'], row['G174641']), axis=1)
+df['Result'] = df.apply(lambda row: date_diff(row['E174641'], row['G174641']), axis=1)
