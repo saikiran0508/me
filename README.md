@@ -1,16 +1,22 @@
-from selenium import webdriver
+import pandas as pd
 
-# Start the driver
-driver = webdriver.Chrome()
+# Example DataFrame
+# df = pd.read_excel('your_file.xlsx') 
 
-# Open a website
-driver.get("https://www.google.com")
+# Replace blanks ("") with NaN
+df['G174641'] = df['G174641'].replace("", pd.NA)
 
-# Open a new tab using JavaScript
-driver.execute_script("window.open('');")
+# Convert columns to numeric (if needed), coercing errors to NaN
+df['G174641'] = pd.to_numeric(df['G174641'], errors='coerce')
+df['E174641'] = pd.to_numeric(df['E174641'], errors='coerce')
 
-# Switch to the new tab
-driver.switch_to.window(driver.window_handles[1])
+# Apply the formula logic
+def calculate_value(e, g):
+    try:
+        if pd.isna(g) or g == 0:
+            return 0
+        return e - g
+    except:
+        return 0
 
-# Open another URL in the new tab
-driver.get("https://www.bing.com")
+df['Result'] = df.apply(lambda row: calculate_value(row['E174641'], row['G174641']), axis=1)
