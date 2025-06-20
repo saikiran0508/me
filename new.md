@@ -1,16 +1,11 @@
 import pandas as pd
-from pandas.tseries.offsets import DateOffset
 
-# Convert E2 to datetime
-df['E2'] = pd.to_datetime(df['E2'], errors='coerce')
+# Make sure U2 and T2 are numeric
+df['U2'] = pd.to_numeric(df['U2'], errors='coerce')
+df['T2'] = pd.to_numeric(df['T2'], errors='coerce')
 
-# Today's date
-today = pd.Timestamp.today()
-
-# 1st day of the month, 13 months ago
-thirteen_months_ago = (today - DateOffset(months=13)).replace(day=1)
-
-# Apply logic
-df['Status'] = df['E2'].apply(
-    lambda x: "> 13 Months" if pd.isna(x) or x < thirteen_months_ago or x > today else "Last-13"
+# Apply the logic
+df['Result'] = df.apply(
+    lambda row: row['U2'] / row['T2'] if pd.notna(row['U2']) and pd.notna(row['T2']) and row['T2'] != 0 else 0,
+    axis=1
 )
