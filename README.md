@@ -1,35 +1,29 @@
-from datetime import datetime
 import pandas as pd
 import numpy as np
 
 def convert_to_date(val):
+    # Handle nulls and zeros
+    if pd.isnull(val) or val == 0 or val == '0':
+        return pd.NaT
+    
+    # If it's a float or int and looks like Excel serial
     try:
-        if pd.isnull(val) or str(val).strip() in ['0', '', '0000-00-00']:
-            return pd.NaT
-
-        val_str = str(val).strip()
-
-        # Handle Excel serial numbers
-        if val_str.replace('.', '', 1).isdigit():
-            val_float = float(val_str)
-            if val_float > 59:
-                return pd.to_datetime('1899-12-30') + pd.to_timedelta(int(val_float), unit='D')
-
-        # Try specific formats first
-        for fmt in ('%d-%m-%y %H:%M:%S', '%d-%m-%Y %H:%M:%S', '%d-%m-%y', '%Y-%m-%d'):
-            try:
-                return datetime.strptime(val_str.split('.')[0], fmt)
-            except:
-                continue
-
-        # Fallback to pandas parsing with dayfirst=True
-        return pd.to_datetime(val_str, errors='coerce', dayfirst=True)
-
+        val_float = float(val)
+        if val_float > 20000:  # Rough cutoff for Excel date serials
+            return pd.to_datetime('1899-12-30') + pd.to_timedelta(int(val_float), unit='D')
+    except:
+        pass
+    
+    # Try parsing as datetime
+    try:
+        return pd.to_datetime(val).date()
     except:
         return pd.NaT
 
-# Apply to your DataFrame
-df['clean_date'] = df['your_column'].apply(convert_to_date)
+# Example dataframe
+df = pd.DataFrame({
+    'mixed_date': [45820, '2025-01-14 00:00:00', '2024-01-18 00:00:00.000000', 0, '0', None]
+})
 
-# Strip time portion if needed
-df['clean_date'] = df['clean_date'].dt.date
+# Apply the function
+df['clean_date'] = df['mixed_date'].apply(convert_to_date)
