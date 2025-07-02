@@ -1,29 +1,43 @@
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+import time
 import pandas as pd
-import numpy as np
 
-def convert_to_date(val):
-    # Handle nulls and zeros
-    if pd.isnull(val) or val == 0 or val == '0':
-        return pd.NaT
-    
-    # If it's a float or int and looks like Excel serial
+# Setup Chrome
+options = Options()
+options.add_argument("--start-maximized")
+# options.add_argument("--headless")  # Use only when stable
+
+driver = webdriver.Chrome(options=options)
+
+# Load Qlik dashboard URL
+dashboard_url = "https://qlik.yourdomain.com/some-dashboard-link"
+driver.get(dashboard_url)
+
+# Wait for Qlik to load (adjust sleep or use WebDriverWait)
+time.sleep(15)
+
+# Find all qv-objects (you can also refine to only grids if needed)
+objects = driver.find_elements(By.CLASS_NAME, "qv-object")
+
+# Loop through each qv-object to find tables
+for obj in objects:
     try:
-        val_float = float(val)
-        if val_float > 20000:  # Rough cutoff for Excel date serials
-            return pd.to_datetime('1899-12-30') + pd.to_timedelta(int(val_float), unit='D')
-    except:
-        pass
-    
-    # Try parsing as datetime
-    try:
-        return pd.to_datetime(val).date()
-    except:
-        return pd.NaT
+        table = obj.find_element(By.CSS_SELECTOR, ".qv-grid-object-content table")
+        rows = table.find_elements(By.TAG_NAME, "tr")
+        data = []
+        for row in rows:
+            cols = row.find_elements(By.TAG_NAME, "td")
+            data.append([col.text.strip() for col in cols])
+        df = pd.DataFrame(data)
+        print(df.head())
 
-# Example dataframe
-df = pd.DataFrame({
-    'mixed_date': [45820, '2025-01-14 00:00:00', '2024-01-18 00:00:00.000000', 0, '0', None]
-})
+        # Save to Excel (optional)
+        df.to_excel("qlik_exported_data.xlsx", index=False)
+        break  # remove this if multiple tables
 
-# Apply the function
-df['clean_date'] = df['mixed_date'].apply(convert_to_date)
+    except Exception as e:
+        continue  # Not a grid object
+
+driver.quit()
