@@ -1,43 +1,24 @@
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
-import time
-import pandas as pd
+from datetime import datetime
 
-# Setup Chrome
-options = Options()
-options.add_argument("--start-maximized")
-# options.add_argument("--headless")  # Use only when stable
+def clean_date_column(value):
+    # If it's already a number or empty, return as-is
+    if pd.isna(value):
+        return None
+    if isinstance(value, (int, float)):
+        return int(value)
+    if isinstance(value, str) and value.strip() == "":
+        return None
 
-driver = webdriver.Chrome(options=options)
+    # If it's a datetime-like object
+    if isinstance(value, datetime):
+        excel_start_date = datetime(1900, 1, 1)
+        # Days since 1900-01-01
+        days = (value - excel_start_date).days + 1  # Excel's date system starts from day 1
+        if days <= 0:
+            return 0
+        return days
 
-# Load Qlik dashboard URL
-dashboard_url = "https://qlik.yourdomain.com/some-dashboard-link"
-driver.get(dashboard_url)
+    return value  # fallback (may customize this)
 
-# Wait for Qlik to load (adjust sleep or use WebDriverWait)
-time.sleep(15)
-
-# Find all qv-objects (you can also refine to only grids if needed)
-objects = driver.find_elements(By.CLASS_NAME, "qv-object")
-
-# Loop through each qv-object to find tables
-for obj in objects:
-    try:
-        table = obj.find_element(By.CSS_SELECTOR, ".qv-grid-object-content table")
-        rows = table.find_elements(By.TAG_NAME, "tr")
-        data = []
-        for row in rows:
-            cols = row.find_elements(By.TAG_NAME, "td")
-            data.append([col.text.strip() for col in cols])
-        df = pd.DataFrame(data)
-        print(df.head())
-
-        # Save to Excel (optional)
-        df.to_excel("qlik_exported_data.xlsx", index=False)
-        break  # remove this if multiple tables
-
-    except Exception as e:
-        continue  # Not a grid object
-
-driver.quit()
+# Apply the function
+df['ManualDateColumn_Cleaned'] = df['ManualDateColumn'].apply(clean_date_column)
