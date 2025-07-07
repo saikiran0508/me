@@ -1,24 +1,31 @@
-from datetime import datetime
+import pandas as pd
+import numpy as np
+import datetime
 
-def clean_date_column(value):
-    # If it's already a number or empty, return as-is
-    if pd.isna(value):
-        return None
-    if isinstance(value, (int, float)):
-        return int(value)
-    if isinstance(value, str) and value.strip() == "":
-        return None
+# Read the Excel file
+df = pd.read_excel("your_file.xlsx")
 
-    # If it's a datetime-like object
-    if isinstance(value, datetime):
-        excel_start_date = datetime(1900, 1, 1)
-        # Days since 1900-01-01
-        days = (value - excel_start_date).days + 1  # Excel's date system starts from day 1
-        if days <= 0:
+# Problematic column
+col = "manual_date_column"
+
+# Fix function
+def correct_excel_date(val):
+    if pd.isna(val):
+        return np.nan
+    
+    if isinstance(val, pd.Timestamp):
+        # Excel's epoch bug offset
+        base_date = pd.Timestamp("1899-12-30")
+        return (val - base_date).days
+    
+    elif isinstance(val, datetime.time):
+        # This is usually Excel zero shown as 00:00:00
+        if val == datetime.time(0, 0):
             return 0
-        return days
+        else:
+            return val  # or np.nan or flag if unexpected
 
-    return value  # fallback (may customize this)
+    return val  # Return as-is for other types
 
-# Apply the function
-df['ManualDateColumn_Cleaned'] = df['ManualDateColumn'].apply(clean_date_column)
+# Apply correction
+df[col] = df[col].apply(correct_excel_date)
