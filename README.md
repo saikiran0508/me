@@ -1,52 +1,32 @@
+import win32com.client
 import pandas as pd
-import numpy as np
-import datetime
 
-# Read Excel file
-df = pd.read_excel('your_file.xlsx')
+# Start Outlook and access the default Contacts folder
+outlook = win32com.client.Dispatch("Outlook.Application").GetNamespace("MAPI")
+contacts_folder = outlook.GetDefaultFolder(10)  # 10 = olFolderContacts
+contacts = contacts_folder.Items
 
-# Replace 'your_column' with the actual column name
-col = 'your_column'
+# Prepare list to hold contact details
+contact_data = []
 
-def correct_excel_date(val):
-    if pd.isna(val):
-        return np.nan
+# Iterate through each contact item
+for contact in contacts:
+    try:
+        contact_data.append({
+            'Full Name': contact.FullName,
+            'Email': contact.Email1Address,
+            'Job Title': contact.JobTitle,
+            'Department': contact.Department,
+            'Company': contact.CompanyName,
+            'Business Phone': contact.BusinessTelephoneNumber,
+            'Mobile Phone': contact.MobileTelephoneNumber,
+            'Mailing Address': contact.MailingAddress
+        })
+    except Exception as e:
+        print("Error reading contact:", e)
 
-    # Excel wrongly formatted 0 as datetime.time(0, 0)
-    if isinstance(val, datetime.time):
-        if val == datetime.time(0, 0):
-            return 0
-        else:
-            return val  # Keep it or flag
+# Convert list to DataFrame
+df_contacts = pd.DataFrame(contact_data)
 
-    # Excel date interpreted as Timestamp (e.g., 1900-01-03 00:00:00)
-    if isinstance(val, pd.Timestamp):
-        base = pd.Timestamp('1899-12-30')  # Excel's epoch origin
-        return (val - base).days
-
-    # If already int or float
-    if isinstance(val, (int, float)):
-        return val
-
-    # If it's a string that might be '00:00:00' or something else
-    if isinstance(val, str):
-        val = val.strip()
-        if val == '00:00:00':
-            return 0
-        try:
-            # Try to parse as datetime
-            parsed = pd.to_datetime(val, errors='coerce')
-            if pd.notna(parsed):
-                base = pd.Timestamp('1899-12-30')
-                return (parsed - base).days
-        except:
-            pass
-        try:
-            return float(val)
-        except:
-            return val  # return as-is if completely unparseable
-
-    return val  # fallback
-
-# Apply to column
-df[col] = df[col].apply(correct_excel_date)
+# Show the DataFrame
+print(df_contacts)
