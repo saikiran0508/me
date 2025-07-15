@@ -1,32 +1,33 @@
 import win32com.client
 import pandas as pd
 
-# Start Outlook and access the default Contacts folder
+# Connect to Outlook
 outlook = win32com.client.Dispatch("Outlook.Application").GetNamespace("MAPI")
-contacts_folder = outlook.GetDefaultFolder(10)  # 10 = olFolderContacts
-contacts = contacts_folder.Items
 
-# Prepare list to hold contact details
-contact_data = []
+# Get Global Address List
+address_list = outlook.AddressLists("Global Address List")
+entries = address_list.AddressEntries
 
-# Iterate through each contact item
-for contact in contacts:
+# For Exchange users, resolve to get full properties like job title, department, etc.
+contacts_data = []
+
+for i in range(1, entries.Count + 1):
+    entry = entries.Item(i)
     try:
-        contact_data.append({
-            'Full Name': contact.FullName,
-            'Email': contact.Email1Address,
-            'Job Title': contact.JobTitle,
-            'Department': contact.Department,
-            'Company': contact.CompanyName,
-            'Business Phone': contact.BusinessTelephoneNumber,
-            'Mobile Phone': contact.MobileTelephoneNumber,
-            'Mailing Address': contact.MailingAddress
-        })
+        exch_user = entry.GetExchangeUser()
+        if exch_user:
+            contacts_data.append({
+                "Name": exch_user.Name,
+                "Email": exch_user.PrimarySmtpAddress,
+                "Job Title": exch_user.JobTitle,
+                "Department": exch_user.Department,
+                "Company": exch_user.CompanyName
+            })
     except Exception as e:
-        print("Error reading contact:", e)
+        print(f"Error with entry {i}: {e}")
 
-# Convert list to DataFrame
-df_contacts = pd.DataFrame(contact_data)
+# Load into DataFrame
+df_gal = pd.DataFrame(contacts_data)
 
-# Show the DataFrame
-print(df_contacts)
+# Display top few rows
+print(df_gal.head())
